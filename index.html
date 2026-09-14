@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Recipe Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #FFF6DE;
+    --card: #FFFDF6;
+    --ink: #2B2A22;
+    --ink-soft: #6B6650;
+    --green: #3F5142;
+    --green-deep: #2C3A2E;
+    --gold: #F7C948;
+    --gold-deep: #C99A1E;
+    --rust: #A6503D;
+    --line: #F0E2B4;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Nunito', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  a{color:inherit;}
+
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 28px;
+    position:relative;
+    z-index:1;
+  }
+
+  /* ---------- FLOATING BACKGROUND FOOD ---------- */
+  .food-field{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .food-field span{
+    position:absolute;
+    font-size:34px;
+    opacity:0.22;
+    animation:drift 14s ease-in-out infinite;
+    filter:saturate(0.9);
+  }
+  @keyframes drift{
+    0%   { transform:translate(0,0) rotate(0deg); }
+    50%  { transform:translate(14px,-22px) rotate(8deg); }
+    100% { transform:translate(0,0) rotate(0deg); }
+  }
+  .food-field span:nth-child(1){ top:6%;  left:8%;  font-size:40px; animation-duration:16s; }
+  .food-field span:nth-child(2){ top:14%; left:82%; font-size:30px; animation-duration:12s; animation-delay:-2s; }
+  .food-field span:nth-child(3){ top:32%; left:4%;  font-size:26px; animation-duration:18s; animation-delay:-6s; }
+  .food-field span:nth-child(4){ top:46%; left:90%; font-size:36px; animation-duration:15s; animation-delay:-3s; }
+  .food-field span:nth-child(5){ top:64%; left:12%; font-size:32px; animation-duration:13s; animation-delay:-8s; }
+  .food-field span:nth-child(6){ top:78%; left:85%; font-size:28px; animation-duration:17s; animation-delay:-4s; }
+  .food-field span:nth-child(7){ top:88%; left:20%; font-size:38px; animation-duration:14s; animation-delay:-10s; }
+  .food-field span:nth-child(8){ top:5%;  left:45%; font-size:24px; animation-duration:19s; animation-delay:-1s; }
+  .food-field span:nth-child(9){ top:58%; left:48%; font-size:30px; animation-duration:16s; animation-delay:-7s; }
+  .food-field span:nth-child(10){ top:94%; left:60%; font-size:26px; animation-duration:12s; animation-delay:-5s; }
+
+  /* ---------- HEADER ---------- */
+  header{
+    padding:64px 0 40px;
+    border-bottom:1px solid var(--line);
+  }
+  .kicker-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .box-mark{
+    width:34px;height:26px;
+    border:2px solid var(--gold-deep);
+    border-radius:3px;
+    position:relative;
+    flex-shrink:0;
+  }
+  .box-mark::before{
+    content:"";
+    position:absolute;
+    top:-7px; left:6px;
+    width:20px; height:8px;
+    border:2px solid var(--gold-deep);
+    border-bottom:none;
+    border-radius:4px 4px 0 0;
+  }
+  .site-name{
+    font-family:'Nunito';
+    font-size:15px;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+  }
+  h1{
+    font-family:'Fredoka', sans-serif;
+    font-weight:500;
+    font-size:clamp(40px, 6vw, 68px);
+    line-height:1.02;
+    margin:0 0 18px;
+    max-width:11ch;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--rust);
+  }
+  .lede{
+    font-size:18px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:46ch;
+    margin:0;
+  }
+
+  /* ---------- CONTROLS ---------- */
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    align-items:center;
+    justify-content:space-between;
+    padding:28px 0 30px;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .tab{
+    font-family:'Nunito';
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink-soft);
+    background:transparent;
+    border:1px solid var(--line);
+    padding:9px 16px;
+    border-radius:5px;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .tab:hover{ border-color:var(--gold-deep); color:var(--gold-deep); }
+  .tab.active{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:var(--ink);
+  }
+
+  .right-controls{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .search-wrap{
+    position:relative;
+  }
+  .search-wrap input{
+    font-family:'Nunito';
+    font-size:14px;
+    padding:9px 14px 9px 34px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    background:var(--card);
+    color:var(--ink);
+    width:190px;
+    outline:none;
+    transition:border-color 0.15s ease;
+  }
+  .search-wrap input:focus{ border-color:var(--gold-deep); }
+  .search-wrap svg{
+    position:absolute;
+    left:11px; top:50%;
+    transform:translateY(-50%);
+    width:14px; height:14px;
+    stroke:var(--ink-soft);
+  }
+
+  .surprise-btn{
+    font-family:'Nunito';
+    font-size:14px;
+    font-weight:600;
+    padding:9px 18px;
+    border-radius:5px;
+    border:1px solid var(--rust);
+    background:var(--rust);
+    color:#FBF3EC;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .surprise-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(166,80,61,0.28);
+  }
+  .surprise-btn:active{ transform:translateY(0); }
+
+  /* ---------- COUNTRY SEGMENT ---------- */
+  .country-section{
+    padding-bottom:26px;
+  }
+  .country-heading{
+    font-family:'Nunito';
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin:0 0 12px;
+  }
+  .country-chips{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    scrollbar-width:thin;
+  }
+  .country-chip{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-family:'Nunito';
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--card);
+    border:1px solid var(--line);
+    padding:9px 16px;
+    border-radius:22px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  }
+  .country-chip:hover{ transform:translateY(-1px); border-color:var(--gold-deep); }
+  .country-chip.active{
+    background:var(--gold);
+    border-color:var(--gold);
+  }
+  .country-chip .flag{ font-size:16px; }
+
+  /* ---------- GRID ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:26px 22px;
+    padding-bottom:80px;
+  }
+  @media (max-width:820px){
+    .grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:560px){
+    .grid{ grid-template-columns:1fr; }
+    .controls{ flex-direction:column; align-items:stretch; }
+    .right-controls{ justify-content:space-between; }
+    .search-wrap input{ width:100%; }
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-top:4px solid var(--tag-color, var(--green));
+    border-radius:2px;
+    padding:22px 20px 20px;
+    cursor:pointer;
+    position:relative;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow:0 1px 0 rgba(43,42,34,0.04);
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 22px rgba(43,42,34,0.10);
+  }
+  .card::before, .card::after{
+    content:"";
+    position:absolute;
+    top:12px;
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--paper);
+    border:1px solid var(--line);
+  }
+  .card::before{ left:12px; }
+  .card::after{ right:12px; }
+
+  .card-tag{
+    display:inline-block;
+    font-size:12.5px;
+    color:var(--tag-color, var(--green));
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .card h3{
+    font-family:'Fredoka', sans-serif;
+    font-weight:500;
+    font-size:22px;
+    line-height:1.2;
+    margin:0 0 8px;
+  }
+  .card p.blurb{
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:0 0 16px;
+  }
+  .card .meta{
+    font-family:'Fredoka', sans-serif;
+    font-style:italic;
+    font-size:13.5px;
+    color:var(--ink-soft);
+  }
+  .country-badge{
+    display:inline-block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:4px 10px;
+    border-radius:20px;
+    margin:0 0 10px;
+  }
+
+  .empty-state{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+    font-family:'Fredoka', sans-serif;
+    font-style:italic;
+    font-size:18px;
+  }
+
+  /* ---------- DETAIL OVERLAY ---------- */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(30,28,20,0.42);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:48px 20px;
+    overflow-y:auto;
+    z-index:50;
+  }
+  .overlay.open{ display:flex; }
+
+  .detail{
+    background:var(--card);
+    max-width:640px;
+    width:100%;
+    border-radius:3px;
+    padding:40px 40px 44px;
+    position:relative;
+    border-top:5px solid var(--tag-color, var(--green));
+    animation:riseIn 0.22s ease;
+  }
+  @keyframes riseIn{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @media (max-width:560px){
+    .detail{ padding:30px 22px 34px; }
+  }
+
+  .close-btn{
+    position:absolute;
+    top:18px; right:18px;
+    width:30px; height:30px;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    color:var(--ink-soft);
+    font-size:20px;
+    line-height:1;
+  }
+  .close-btn:hover{ color:var(--ink); }
+
+  .detail .card-tag{ margin-bottom:14px; }
+  .detail h2{
+    font-family:'Fredoka', sans-serif;
+    font-weight:500;
+    font-size:34px;
+    line-height:1.08;
+    margin:0 0 10px;
+    max-width:20ch;
+  }
+  .detail .meta{
+    font-family:'Fredoka', sans-serif;
+    font-style:italic;
+    font-size:15px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+
+  .listen-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin-top:14px;
+  }
+  .listen-btn{
+    font-family:'Nunito';
+    font-size:14.5px;
+    font-weight:700;
+    padding:10px 20px;
+    border-radius:20px;
+    border:none;
+    background:var(--gold-deep);
+    color:#FFFDF6;
+    cursor:pointer;
+    transition:transform 0.12s ease;
+  }
+  .listen-btn:hover{ transform:translateY(-1px); }
+  .listen-btn:active{ transform:translateY(0); }
+  .voice-select{
+    font-family:'Nunito';
+    font-size:13px;
+    padding:8px 10px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    max-width:170px;
+  }
+  .listen-note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:8px 0 0;
+  }
+
+  .detail-section{ margin-top:30px; }
+  .detail-section h4{
+    font-family:'Nunito';
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--gold-deep);
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .ingredients{
+    list-style:none;
+    margin:0; padding:0;
+    display:grid;
+    gap:9px;
+  }
+  .ingredients li{
+    font-size:15px;
+    line-height:1.5;
+    padding-left:20px;
+    position:relative;
+  }
+  .ingredients li::before{
+    content:"";
+    position:absolute;
+    left:0; top:7px;
+    width:7px; height:7px;
+    border:1.5px solid var(--gold);
+    border-radius:1px;
+    transform:rotate(45deg);
+  }
+
+  .steps{
+    list-style:none;
+    margin:0; padding:0;
+    counter-reset:step;
+    display:grid;
+    gap:18px;
+  }
+  .steps li{
+    counter-increment:step;
+    display:flex;
+    gap:14px;
+    font-size:15px;
+    line-height:1.55;
+  }
+  .steps li::before{
+    content:counter(step);
+    flex-shrink:0;
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--gold-deep);
+    color:#FFFDF6;
+    font-family:'Fredoka', sans-serif;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:1px;
+  }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:26px 0 50px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="food-field" aria-hidden="true">
+  <span>🍋</span>
+  <span>🥐</span>
+  <span>🍓</span>
+  <span>🍳</span>
+  <span>🥞</span>
+  <span>🍫</span>
+  <span>🍞</span>
+  <span>🧈</span>
+  <span>🍯</span>
+  <span>🍒</span>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="kicker-row">
+      <div class="box-mark"></div>
+      <span class="site-name">The Recipe Box</span>
+    </div>
+    <h1>Cook something <em>good</em> tonight.</h1>
+    <p class="lede">A small, honest collection of recipes worth keeping on an index card — the kind you'd actually cook twice.</p>
+  </header>
+
+  <div class="controls">
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-filter="all">All recipes</button>
+      <button class="tab" data-filter="Breakfast">Breakfast</button>
+      <button class="tab" data-filter="Dinner">Dinner</button>
+      <button class="tab" data-filter="Dessert">Dessert</button>
+    </div>
+    <div class="right-controls">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search by name, country, or ingredient">
+      </div>
+      <button class="surprise-btn" id="surpriseBtn">Surprise me</button>
+    </div>
+  </div>
+
+  <div class="country-section">
+    <h4 class="country-heading">Browse by country</h4>
+    <div class="country-chips" id="countryChips"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer id="footerText">Recipes, cooked and re-cooked. More get added when something earns its place.</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="detail" id="detailContent"></div>
+</div>
+
+<script>
+const recipes = [
+  {
+    id: "pancakes",
+    title: "Fluffy Buttermilk Pancakes",
+    category: "Breakfast",
+    country: "United States",
+    flag: "🇺🇸",
+    color: "#C99A1E",
+    blurb: "Tall, tender stacks with a golden edge — the weekend kind.",
+    time: "25 min",
+    serves: "Serves 4 (about 12 pancakes)",
+    ingredients: [
+      "2 cups all-purpose flour",
+      "2 tbsp sugar",
+      "2 tsp baking powder",
+      "1/2 tsp baking soda",
+      "1/2 tsp salt",
+      "2 cups buttermilk",
+      "2 large eggs",
+      "3 tbsp melted butter, plus more for the pan",
+      "1 tsp vanilla extract"
+    ],
+    steps: [
+      "Whisk the flour, sugar, baking powder, baking soda, and salt together in a large bowl.",
+      "In a separate bowl, whisk the buttermilk, eggs, melted butter, and vanilla until smooth.",
+      "Pour the wet ingredients into the dry and stir just until combined — a few lumps are fine. Overmixing makes tough pancakes.",
+      "Let the batter rest for 5 minutes while you heat a griddle or nonstick pan over medium heat.",
+      "Melt a little butter on the pan, then pour 1/4 cup batter per pancake. Cook until bubbles form across the surface and the edges look set, about 2–3 minutes.",
+      "Flip and cook another 1–2 minutes, until golden. Serve warm with butter and syrup."
+    ]
+  },
+  {
+    id: "oatmeal",
+    title: "Baked Oatmeal with Apples",
+    category: "Breakfast",
+    country: "United States",
+    flag: "🇺🇸",
+    color: "#C99A1E",
+    blurb: "Cinnamon-warm, make-ahead, and better on day two.",
+    time: "50 min",
+    serves: "Serves 6",
+    ingredients: [
+      "2 cups old-fashioned rolled oats",
+      "1 tsp baking powder",
+      "1 1/2 tsp cinnamon",
+      "1/2 tsp salt",
+      "2 cups milk",
+      "1 large egg",
+      "1/3 cup maple syrup, plus more to serve",
+      "3 tbsp melted butter",
+      "1 tsp vanilla extract",
+      "2 apples, cored and diced"
+    ],
+    steps: [
+      "Preheat the oven to 375°F and butter an 8x8-inch baking dish.",
+      "In a bowl, mix the oats, baking powder, cinnamon, and salt.",
+      "In a separate bowl, whisk the milk, egg, maple syrup, melted butter, and vanilla.",
+      "Scatter half the diced apple across the bottom of the dish. Spread the oats evenly on top, then scatter the remaining apple over the oats.",
+      "Pour the wet mixture evenly over everything — don't stir once it's poured.",
+      "Bake for 35–40 minutes, until the top is golden and set. Cool for 5 minutes, then serve with a drizzle of maple syrup."
+    ]
+  },
+  {
+    id: "shrimp-pasta",
+    title: "Garlic Butter Shrimp Pasta",
+    category: "Dinner",
+    country: "Italy",
+    flag: "🇮🇹",
+    color: "#3F5142",
+    blurb: "Fifteen minutes from pan to plate, and it never misses.",
+    time: "20 min",
+    serves: "Serves 3–4",
+    ingredients: [
+      "12 oz linguine or spaghetti",
+      "1 lb large shrimp, peeled and deveined",
+      "4 tbsp butter",
+      "4 cloves garlic, minced",
+      "1/2 tsp red pepper flakes",
+      "1/2 cup dry white wine (or chicken broth)",
+      "Juice of 1 lemon",
+      "1/4 cup chopped parsley",
+      "Salt and black pepper, to taste",
+      "Grated parmesan, to serve"
+    ],
+    steps: [
+      "Bring a large pot of salted water to a boil and cook the pasta until just shy of al dente. Reserve 1 cup of pasta water before draining.",
+      "Meanwhile, pat the shrimp dry and season with salt and pepper.",
+      "Melt half the butter in a large skillet over medium-high heat. Add the shrimp in a single layer and cook 1–2 minutes per side, until just pink. Remove and set aside.",
+      "Add the remaining butter to the skillet with the garlic and red pepper flakes. Cook for 30 seconds, until fragrant.",
+      "Pour in the wine, scraping up any browned bits, and let it bubble for a minute.",
+      "Add the drained pasta to the skillet along with a splash of the reserved pasta water. Toss to coat, adding more water as needed to loosen the sauce.",
+      "Return the shrimp to the pan, add the lemon juice and parsley, and toss once more. Finish with parmesan and serve immediately."
+    ]
+  },
+  {
+    id: "sheet-pan-chicken",
+    title: "Sheet-Pan Lemon Chicken & Veggies",
+    category: "Dinner",
+    country: "United States",
+    flag: "🇺🇸",
+    color: "#3F5142",
+    blurb: "One pan, minimal cleanup, and it looks after itself in the oven.",
+    time: "45 min",
+    serves: "Serves 4",
+    ingredients: [
+      "4 bone-in, skin-on chicken thighs",
+      "1 lb baby potatoes, halved",
+      "2 cups broccoli florets",
+      "1 lemon, half sliced thin and half juiced",
+      "4 tbsp olive oil",
+      "3 cloves garlic, minced",
+      "1 tsp dried oregano",
+      "Salt and black pepper, to taste"
+    ],
+    steps: [
+      "Preheat the oven to 425°F and line a large sheet pan with parchment.",
+      "In a small bowl, whisk the olive oil, lemon juice, garlic, oregano, salt, and pepper.",
+      "Toss the potatoes with half the dressing and spread them on the sheet pan. Roast for 15 minutes.",
+      "Push the potatoes to one side. Add the chicken thighs skin-side up and brush with the remaining dressing. Tuck the lemon slices around the chicken.",
+      "Roast for 20 minutes, then scatter the broccoli over the empty space on the pan, tossing it lightly in the pan juices.",
+      "Roast another 10–12 minutes, until the chicken skin is golden and the potatoes are tender. Let rest 5 minutes before serving."
+    ]
+  },
+  {
+    id: "cookies",
+    title: "Brown Butter Chocolate Chip Cookies",
+    category: "Dessert",
+    country: "United States",
+    flag: "🇺🇸",
+    color: "#A6503D",
+    blurb: "The nutty depth of browned butter makes these hard to stop eating.",
+    time: "40 min",
+    serves: "Makes about 20 cookies",
+    ingredients: [
+      "1 cup butter",
+      "1 cup brown sugar",
+      "1/2 cup granulated sugar",
+      "2 large eggs",
+      "1 tsp vanilla extract",
+      "2 1/4 cups all-purpose flour",
+      "1 tsp baking soda",
+      "1/2 tsp salt",
+      "1 1/2 cups chocolate chips",
+      "Flaky salt, for finishing"
+    ],
+    steps: [
+      "Melt the butter in a light-colored saucepan over medium heat, swirling often, until it turns golden brown and smells nutty, about 5–6 minutes. Pour into a bowl to cool for 10 minutes.",
+      "Whisk the browned butter with both sugars until smooth, then whisk in the eggs and vanilla.",
+      "In a separate bowl, whisk the flour, baking soda, and salt. Fold into the wet mixture until just combined.",
+      "Fold in the chocolate chips. Cover and chill the dough for at least 30 minutes (or up to overnight).",
+      "Preheat the oven to 375°F and line two baking sheets with parchment.",
+      "Scoop 2-tablespoon balls of dough onto the sheets, spaced well apart. Sprinkle with flaky salt.",
+      "Bake for 10–12 minutes, until the edges are set but the centers still look slightly underdone. Cool on the pan for 5 minutes before moving."
+    ]
+  },
+  {
+    id: "lemon-bars",
+    title: "Classic Lemon Bars",
+    category: "Dessert",
+    country: "United States",
+    flag: "🇺🇸",
+    color: "#A6503D",
+    blurb: "Sharp, sunny, and steadier than a slice of pie to transport.",
+    time: "1 hr, plus cooling",
+    serves: "Makes 16 bars",
+    ingredients: [
+      "1 cup all-purpose flour",
+      "1/4 cup powdered sugar, plus more for dusting",
+      "1/2 cup cold butter, cubed",
+      "Pinch of salt",
+      "4 large eggs",
+      "1 1/2 cups granulated sugar",
+      "2/3 cup fresh lemon juice (about 4 lemons)",
+      "1/3 cup all-purpose flour (for the filling)",
+      "Zest of 1 lemon"
+    ],
+    steps: [
+      "Preheat the oven to 350°F and line an 8x8-inch pan with parchment, leaving an overhang on two sides.",
+      "Pulse the flour, powdered sugar, butter, and salt in a food processor (or cut together with a pastry blender) until it resembles coarse crumbs.",
+      "Press the mixture firmly into the bottom of the pan. Bake for 18–20 minutes, until lightly golden.",
+      "While the crust bakes, whisk the eggs, granulated sugar, lemon juice, flour, and lemon zest until smooth.",
+      "Pour the filling over the hot crust and return to the oven. Bake for 20–22 minutes, until the center is just set and no longer jiggles in the middle.",
+      "Cool completely at room temperature, then chill for at least an hour before lifting out and slicing. Dust with powdered sugar before serving."
+    ]
+  },
+  {
+    id: "jollof-rice",
+    title: "Party Jollof Rice",
+    category: "Dinner",
+    country: "Nigeria",
+    flag: "🇳🇬",
+    color: "#3F5142",
+    blurb: "Smoky, tomatoey, and cooked low until the bottom catches just right.",
+    time: "1 hr 15 min",
+    serves: "Serves 6",
+    ingredients: [
+      "3 cups long-grain parboiled rice, rinsed",
+      "6 large tomatoes",
+      "2 red bell peppers",
+      "2 scotch bonnet peppers (less for milder heat)",
+      "1 large onion",
+      "1/3 cup vegetable oil",
+      "3 tbsp tomato paste",
+      "3 cups chicken or beef stock",
+      "2 tsp curry powder",
+      "1 tsp dried thyme",
+      "2 bay leaves",
+      "Salt, to taste"
+    ],
+    steps: [
+      "Blend the tomatoes, bell peppers, scotch bonnet, and half the onion into a smooth puree.",
+      "Chop the remaining onion. Heat the oil in a large heavy pot and fry the onion until soft, then stir in the tomato paste and cook for 3–4 minutes until it darkens slightly.",
+      "Pour in the blended pepper mixture and simmer uncovered for 20–25 minutes, stirring occasionally, until it reduces and the oil starts to separate at the edges.",
+      "Stir in the curry powder, thyme, bay leaves, and stock. Season with salt and bring to a boil.",
+      "Add the rinsed rice, stir once, then cover tightly and reduce the heat to low.",
+      "Cook for 30–35 minutes without lifting the lid, until the rice is tender and the liquid is absorbed. Let it sit off the heat for 10 minutes before fluffing and serving."
+    ]
+  },
+  {
+    id: "egusi-soup",
+    title: "Egusi Soup",
+    category: "Dinner",
+    country: "Nigeria",
+    flag: "🇳🇬",
+    color: "#3F5142",
+    blurb: "Rich ground melon-seed stew, thick enough to hold its own with pounded yam.",
+    time: "1 hr",
+    serves: "Serves 6",
+    ingredients: [
+      "2 cups ground egusi (melon seeds)",
+      "1/2 cup palm oil",
+      "1 lb beef or goat meat, cut into chunks",
+      "1/2 lb smoked fish, cleaned and flaked",
+      "1 onion, chopped",
+      "3 tbsp ground crayfish",
+      "2 cups chopped spinach or bitter leaf",
+      "1 scotch bonnet pepper, chopped",
+      "2 cups beef stock",
+      "Salt and seasoning cubes, to taste"
+    ],
+    steps: [
+      "Season the meat with half the onion and a little salt, then simmer in a pot with a splash of water until tender, about 25–30 minutes. Reserve the stock.",
+      "Mix the ground egusi with a few tablespoons of water to form a thick paste.",
+      "Heat the palm oil in a large pot over medium heat. Add the remaining onion and fry for 2 minutes.",
+      "Spoon in the egusi paste in small lumps and let it fry, undisturbed, for 5–7 minutes to lightly toast.",
+      "Stir in the crayfish, scotch bonnet, cooked meat, smoked fish, and the reserved stock. Cover and simmer for 15–20 minutes, stirring occasionally so it doesn't stick.",
+      "Fold in the spinach or bitter leaf and simmer another 5 minutes. Adjust seasoning and serve hot with pounded yam, fufu, or rice."
+    ]
+  },
+  {
+    id: "puff-puff",
+    title: "Puff-Puff",
+    category: "Dessert",
+    country: "Nigeria",
+    flag: "🇳🇬",
+    color: "#A6503D",
+    blurb: "Fried dough balls, crisp outside and airy inside — street food royalty.",
+    time: "1 hr 30 min",
+    serves: "Makes about 25",
+    ingredients: [
+      "3 cups all-purpose flour",
+      "1/2 cup sugar",
+      "1 tsp instant yeast",
+      "1/2 tsp salt",
+      "1/4 tsp nutmeg",
+      "1 1/2 cups warm water",
+      "Vegetable oil, for frying"
+    ],
+    steps: [
+      "In a large bowl, mix the flour, sugar, yeast, salt, and nutmeg.",
+      "Gradually pour in the warm water, whisking until you have a smooth, stretchy, thick batter — no lumps.",
+      "Cover and let it rise in a warm spot for 45–60 minutes, until bubbly and doubled.",
+      "Heat about 3 inches of oil in a deep pot to 350°F.",
+      "Wet your hand or use a spoon to scoop and drop golf-ball-sized portions of batter into the hot oil, frying in batches.",
+      "Fry for 3–4 minutes, turning often, until deep golden brown and cooked through. Drain on paper towels and serve warm, optionally rolled in sugar."
+    ]
+  },
+  {
+    id: "suya",
+    title: "Beef Suya",
+    category: "Dinner",
+    country: "Nigeria",
+    flag: "🇳🇬",
+    color: "#3F5142",
+    blurb: "Skewered, peanut-spiced grilled beef with real smoke and real heat.",
+    time: "35 min, plus marinating",
+    serves: "Serves 4",
+    ingredients: [
+      "1 1/2 lb beef sirloin, thinly sliced",
+      "1/2 cup roasted peanuts, finely ground",
+      "1 tbsp paprika",
+      "1 tsp cayenne pepper (more to taste)",
+      "1 tsp ground ginger",
+      "1/2 tsp garlic powder",
+      "1/2 tsp onion powder",
+      "1 tsp bouillon powder",
+      "3 tbsp vegetable oil",
+      "Sliced onion, tomato, and cabbage, to serve"
+    ],
+    steps: [
+      "Combine the ground peanuts, paprika, cayenne, ginger, garlic powder, onion powder, and bouillon powder to make the suya spice mix (yaji).",
+      "Toss the sliced beef with the oil, then coat thoroughly with the spice mix. Cover and marinate for at least 1 hour, ideally overnight.",
+      "Thread the beef onto skewers, laying the slices flat and close together.",
+      "Grill over high heat (or under a broiler), turning every 2–3 minutes, until charred at the edges and cooked through, about 10–12 minutes total.",
+      "Dust with a little extra spice mix off the heat and serve with sliced onion, tomato, and cabbage."
+    ]
+  },
+  {
+    id: "tikka-masala",
+    title: "Chicken Tikka Masala",
+    category: "Dinner",
+    country: "India",
+    flag: "🇮🇳",
+    color: "#3F5142",
+    blurb: "Charred marinated chicken in a velvety, spiced tomato-cream sauce.",
+    time: "1 hr, plus marinating",
+    serves: "Serves 4",
+    ingredients: [
+      "1 1/2 lb boneless chicken thighs, cubed",
+      "1 cup yogurt",
+      "2 tbsp lemon juice",
+      "2 tsp garam masala, divided",
+      "1 tbsp ginger-garlic paste",
+      "2 tbsp butter",
+      "1 onion, finely chopped",
+      "1 can (14 oz) crushed tomatoes",
+      "1 tsp ground cumin",
+      "1 tsp paprika",
+      "1/2 cup heavy cream",
+      "Salt, to taste",
+      "Chopped cilantro, to serve"
+    ],
+    steps: [
+      "Mix the yogurt, lemon juice, 1 tsp garam masala, and half the ginger-garlic paste. Toss with the chicken and marinate for at least 1 hour.",
+      "Thread the chicken onto skewers (or spread on a tray) and broil or grill for 12–15 minutes, turning once, until charred at the edges.",
+      "Melt the butter in a large pan over medium heat. Add the onion and cook until soft and golden, about 8 minutes.",
+      "Stir in the remaining ginger-garlic paste, cumin, paprika, and remaining garam masala, cooking for 1 minute until fragrant.",
+      "Add the crushed tomatoes and simmer for 12–15 minutes, until thickened.",
+      "Stir in the cream and the charred chicken, and simmer 5 more minutes. Season with salt and finish with cilantro."
+    ]
+  },
+  {
+    id: "pad-thai",
+    title: "Pad Thai",
+    category: "Dinner",
+    country: "Thailand",
+    flag: "🇹🇭",
+    color: "#3F5142",
+    blurb: "Sweet, sour, and salty rice noodles, tossed hot and fast in the wok.",
+    time: "30 min",
+    serves: "Serves 3",
+    ingredients: [
+      "8 oz flat rice noodles",
+      "2 tbsp tamarind paste",
+      "3 tbsp fish sauce",
+      "2 tbsp palm sugar or brown sugar",
+      "2 tbsp vegetable oil",
+      "2 eggs",
+      "8 oz shrimp or chicken, sliced",
+      "2 cloves garlic, minced",
+      "1 cup bean sprouts",
+      "3 green onions, chopped",
+      "1/4 cup crushed peanuts",
+      "Lime wedges, to serve"
+    ],
+    steps: [
+      "Soak the rice noodles in warm water for 20–30 minutes, until pliable but still firm. Drain.",
+      "Whisk the tamarind paste, fish sauce, and sugar together to make the sauce.",
+      "Heat the oil in a wok over high heat. Crack in the eggs and scramble briefly, then push to one side.",
+      "Add the garlic and shrimp or chicken, stir-frying until just cooked, about 2–3 minutes.",
+      "Add the drained noodles and the sauce, tossing constantly for 2–3 minutes until the noodles soften and soak up the sauce.",
+      "Toss in the bean sprouts and half the green onions. Plate and top with crushed peanuts, remaining green onions, and lime wedges."
+    ]
+  },
+  {
+    id: "shakshuka",
+    title: "Shakshuka",
+    category: "Breakfast",
+    country: "Tunisia",
+    flag: "🇹🇳",
+    color: "#C99A1E",
+    blurb: "Eggs poached in a bubbling spiced tomato and pepper sauce, straight from the pan.",
+    time: "35 min",
+    serves: "Serves 3",
+    ingredients: [
+      "3 tbsp olive oil",
+      "1 onion, chopped",
+      "1 red bell pepper, chopped",
+      "3 cloves garlic, minced",
+      "1 tsp cumin",
+      "1 tsp paprika",
+      "1/4 tsp cayenne pepper",
+      "1 can (28 oz) crushed tomatoes",
+      "Salt and black pepper, to taste",
+      "5 large eggs",
+      "Chopped parsley and crumbled feta, to serve"
+    ],
+    steps: [
+      "Heat the olive oil in a wide skillet over medium heat. Add the onion and bell pepper and cook until softened, about 7 minutes.",
+      "Stir in the garlic, cumin, paprika, and cayenne, cooking for 1 minute until fragrant.",
+      "Pour in the crushed tomatoes, season with salt and pepper, and simmer for 12–15 minutes, until thickened.",
+      "Make small wells in the sauce with a spoon and crack an egg into each one.",
+      "Cover and cook for 6–8 minutes, until the egg whites are set but the yolks are still soft.",
+      "Scatter with parsley and feta and serve straight from the pan with crusty bread."
+    ]
+  },
+  {
+    id: "tacos-al-pastor",
+    title: "Tacos al Pastor",
+    category: "Dinner",
+    country: "Mexico",
+    flag: "🇲🇽",
+    color: "#3F5142",
+    blurb: "Chile-marinated pork with charred pineapple, straight off the griddle.",
+    time: "40 min, plus marinating",
+    serves: "Serves 4 (about 12 tacos)",
+    ingredients: [
+      "1 1/2 lb pork shoulder, thinly sliced",
+      "3 dried guajillo chiles, stemmed and seeded",
+      "2 dried ancho chiles, stemmed and seeded",
+      "1/2 cup pineapple juice",
+      "3 cloves garlic",
+      "2 tbsp vinegar",
+      "1 tsp cumin",
+      "1 tsp oregano",
+      "1/2 cup diced pineapple",
+      "Small corn tortillas",
+      "Chopped onion, cilantro, and lime, to serve"
+    ],
+    steps: [
+      "Toast the dried chiles in a dry pan for about 1 minute per side, then soak in hot water for 15 minutes until soft.",
+      "Blend the softened chiles with the pineapple juice, garlic, vinegar, cumin, and oregano into a smooth marinade.",
+      "Toss the pork slices with the marinade and refrigerate for at least 2 hours, ideally overnight.",
+      "Heat a large skillet or griddle over high heat and cook the pork in batches until charred and cooked through, 3–4 minutes per side.",
+      "In the last few minutes, sear the diced pineapple alongside until lightly caramelized.",
+      "Warm the tortillas, then fill with chopped pork, a spoonful of pineapple, onion, and cilantro. Finish with a squeeze of lime."
+    ]
+  },
+  {
+    id: "bibimbap",
+    title: "Bibimbap",
+    category: "Dinner",
+    country: "South Korea",
+    flag: "🇰🇷",
+    color: "#3F5142",
+    blurb: "A bowl of rice, seasoned vegetables, and a fried egg, stirred together at the table.",
+    time: "45 min",
+    serves: "Serves 4",
+    ingredients: [
+      "4 cups cooked short-grain rice",
+      "1/2 lb beef sirloin, thinly sliced",
+      "2 tbsp soy sauce, divided",
+      "1 tbsp sesame oil, plus more for drizzling",
+      "2 carrots, julienned",
+      "1 zucchini, julienned",
+      "2 cups spinach",
+      "1 cup bean sprouts",
+      "4 shiitake mushrooms, sliced",
+      "4 eggs",
+      "4 tbsp gochujang (Korean chili paste)",
+      "Sesame seeds, to finish"
+    ],
+    steps: [
+      "Marinate the beef in 1 tbsp soy sauce and a little sesame oil for 15 minutes, then stir-fry in a hot pan until browned. Set aside.",
+      "Blanch the spinach and bean sprouts separately for 30 seconds, then squeeze dry and season each with a little sesame oil and salt.",
+      "Sauté the carrots, zucchini, and mushrooms separately in a lightly oiled pan until just tender, seasoning lightly with salt.",
+      "Fry the eggs sunny-side up, keeping the yolks runny.",
+      "Divide the rice among bowls and arrange the beef and vegetables in sections on top.",
+      "Top each bowl with a fried egg and a spoonful of gochujang. Stir everything together well before eating."
+    ]
+  },
+  {
+    id: "baklava",
+    title: "Baklava",
+    category: "Dessert",
+    country: "Turkey",
+    flag: "🇹🇷",
+    color: "#A6503D",
+    blurb: "Crackling layers of filo, chopped nuts, and honey syrup.",
+    time: "1 hr 15 min",
+    serves: "Makes about 24 pieces",
+    ingredients: [
+      "1 lb filo pastry sheets, thawed",
+      "1 1/2 cups walnuts or pistachios, finely chopped",
+      "1 tsp cinnamon",
+      "1 cup butter, melted",
+      "1 cup sugar",
+      "1 cup water",
+      "1/2 cup honey",
+      "1 tbsp lemon juice"
+    ],
+    steps: [
+      "Preheat the oven to 350°F and butter a 9x13-inch baking pan.",
+      "Mix the chopped nuts with the cinnamon.",
+      "Layer about 8 sheets of filo in the pan, brushing each sheet with melted butter. Sprinkle a third of the nut mixture over the top.",
+      "Repeat layering filo and nuts twice more, finishing with a stack of about 8 buttered filo sheets on top.",
+      "Using a sharp knife, cut the whole pan into diamond or square shapes before baking. Bake for 45–50 minutes, until deep golden and crisp.",
+      "Meanwhile, simmer the sugar, water, honey, and lemon juice for 10 minutes to make a syrup. Pour the hot syrup evenly over the baklava as soon as it comes out of the oven. Let it cool completely before serving."
+    ]
+  },
+  {
+    id: "brigadeiros",
+    title: "Brigadeiros",
+    category: "Dessert",
+    country: "Brazil",
+    flag: "🇧🇷",
+    color: "#A6503D",
+    blurb: "Fudgy chocolate truffles rolled in sprinkles — a birthday-party staple.",
+    time: "30 min, plus chilling",
+    serves: "Makes about 20",
+    ingredients: [
+      "1 can (14 oz) sweetened condensed milk",
+      "3 tbsp cocoa powder",
+      "1 tbsp butter, plus more for shaping",
+      "Pinch of salt",
+      "Chocolate sprinkles, for coating"
+    ],
+    steps: [
+      "Combine the condensed milk, cocoa powder, butter, and salt in a saucepan over medium-low heat.",
+      "Cook, stirring constantly, for 10–12 minutes, until the mixture thickens enough that a spoon dragged through it leaves the pan bottom visible for a second.",
+      "Pour the mixture onto a buttered plate and let it cool completely, about 1 hour (or chill to speed this up).",
+      "Butter your hands and roll the mixture into small balls, about 1 inch across.",
+      "Roll each ball in chocolate sprinkles until fully coated. Place in mini paper cups and serve."
+    ]
+  },
+  {
+    id: "ratatouille",
+    title: "Ratatouille",
+    category: "Dinner",
+    country: "France",
+    flag: "🇫🇷",
+    color: "#3F5142",
+    blurb: "Slow-stewed summer vegetables, simple enough to let the produce speak.",
+    time: "1 hr",
+    serves: "Serves 4",
+    ingredients: [
+      "1 eggplant, diced",
+      "2 zucchini, diced",
+      "1 red bell pepper, diced",
+      "1 yellow bell pepper, diced",
+      "1 onion, chopped",
+      "3 cloves garlic, minced",
+      "4 tomatoes, chopped (or 1 can crushed tomatoes)",
+      "1/4 cup olive oil",
+      "1 tsp dried herbes de Provence (or thyme)",
+      "Salt and black pepper, to taste",
+      "Fresh basil, to finish"
+    ],
+    steps: [
+      "Salt the diced eggplant and let it sit in a colander for 20 minutes to draw out bitterness, then pat dry.",
+      "Heat 2 tbsp olive oil in a large pot over medium heat and sauté the onion until soft, about 5 minutes. Add the garlic and cook 1 minute more.",
+      "Add the eggplant and remaining olive oil, cooking for 8–10 minutes until it starts to soften.",
+      "Stir in the zucchini and both bell peppers, cooking another 8 minutes.",
+      "Add the tomatoes and herbes de Provence, season with salt and pepper, and simmer uncovered for 25–30 minutes, stirring occasionally, until everything is tender and the sauce has thickened.",
+      "Finish with torn fresh basil and serve warm or at room temperature."
+    ]
+  },
+  {
+    id: "moin-moin",
+    title: "Moin Moin",
+    category: "Breakfast",
+    country: "Nigeria",
+    flag: "🇳🇬",
+    color: "#C99A1E",
+    blurb: "Steamed bean pudding, peppery and soft, sliced like a savory cake.",
+    time: "1 hr 15 min",
+    serves: "Serves 6",
+    ingredients: [
+      "3 cups peeled black-eyed peas, soaked",
+      "1 red bell pepper",
+      "1 scotch bonnet pepper",
+      "1 onion",
+      "1/2 cup vegetable oil",
+      "3 hard-boiled eggs, sliced (optional)",
+      "1/2 cup ground crayfish",
+      "2 seasoning cubes",
+      "Salt, to taste",
+      "1 cup water or stock"
+    ],
+    steps: [
+      "Blend the soaked beans with the bell pepper, scotch bonnet, onion, and water or stock until smooth.",
+      "Whisk in the oil, crayfish, crumbled seasoning cubes, and salt until the batter is light and well combined.",
+      "Pour the batter into small foil cups, ramekins, or lined tins, filling about two-thirds full. Drop a few slices of boiled egg into each.",
+      "Cover each container with foil and arrange in a large pot with a steaming rack. Add water below the rack level.",
+      "Cover the pot and steam over medium heat for 45–55 minutes, topping up water as needed, until a skewer comes out clean.",
+      "Let cool slightly before unmolding. Serve warm on its own or with bread and a cold drink."
+    ]
+  },
+  {
+    id: "chin-chin",
+    title: "Chin Chin",
+    category: "Dessert",
+    country: "Nigeria",
+    flag: "🇳🇬",
+    color: "#A6503D",
+    blurb: "Crunchy fried pastry bites, lightly sweet and endlessly snackable.",
+    time: "1 hr",
+    serves: "Makes a large jar",
+    ingredients: [
+      "4 cups all-purpose flour",
+      "1/2 cup sugar",
+      "1/2 tsp nutmeg",
+      "1/2 tsp baking powder",
+      "1/2 cup butter, cold and cubed",
+      "2 eggs",
+      "1/2 cup milk",
+      "1 tsp vanilla extract",
+      "Vegetable oil, for frying"
+    ],
+    steps: [
+      "In a large bowl, mix the flour, sugar, nutmeg, and baking powder.",
+      "Rub the cold butter into the flour with your fingers until it resembles breadcrumbs.",
+      "Whisk the eggs, milk, and vanilla together, then work into the flour mixture to form a firm, non-sticky dough. Add a splash more milk if needed.",
+      "Roll the dough out to about 1/2-inch thickness and cut into small cubes.",
+      "Heat about 3 inches of oil to 325°F. Fry the dough cubes in batches, stirring often, for 8–10 minutes, until deep golden and crunchy all the way through.",
+      "Drain on paper towels and let cool completely before storing — they crisp up further as they cool."
+    ]
+  },
+  {
+    id: "waakye",
+    title: "Waakye",
+    category: "Dinner",
+    country: "Ghana",
+    flag: "🇬🇭",
+    color: "#3F5142",
+    blurb: "Rice and beans cooked together over dried millet leaves for their signature red-brown color.",
+    time: "1 hr",
+    serves: "Serves 5",
+    ingredients: [
+      "2 cups rice, rinsed",
+      "1 cup dried black-eyed peas, soaked",
+      "1 handful dried waakye leaves (or 1 tsp baking soda as substitute)",
+      "1 onion, chopped",
+      "2 tbsp vegetable oil",
+      "Salt, to taste",
+      "Shito (Ghanaian pepper sauce) and gari, to serve"
+    ],
+    steps: [
+      "Boil the soaked black-eyed peas in plenty of water with the waakye leaves for 25–30 minutes, until the beans are just tender and the water has turned a deep red-brown.",
+      "Remove and discard the leaves. Add the rinsed rice, onion, oil, and salt directly to the same pot and liquid.",
+      "Top up with water if needed so the rice is just covered, then bring to a boil.",
+      "Cover tightly and reduce to low heat, cooking for 20–25 minutes until the rice is tender and the liquid is absorbed.",
+      "Fluff gently and serve with shito, gari, and your choice of stew or protein on the side."
+    ]
+  },
+  {
+    id: "doro-wat",
+    title: "Doro Wat",
+    category: "Dinner",
+    country: "Ethiopia",
+    flag: "🇪🇹",
+    color: "#3F5142",
+    blurb: "Deep red, slow-simmered chicken stew built on berbere and patience.",
+    time: "1 hr 30 min",
+    serves: "Serves 5",
+    ingredients: [
+      "3 lb chicken pieces, skin removed",
+      "3 large red onions, finely chopped",
+      "1/2 cup niter kibbeh (spiced butter) or regular butter",
+      "1/4 cup berbere spice blend",
+      "4 cloves garlic, minced",
+      "1 tbsp minced ginger",
+      "2 tbsp tomato paste",
+      "2 cups chicken stock",
+      "4 hard-boiled eggs",
+      "Salt, to taste"
+    ],
+    steps: [
+      "Cook the chopped onions in a dry pot over medium heat, stirring often, for 15–20 minutes until they soften and darken without any oil.",
+      "Add the niter kibbeh and cook for a few minutes, then stir in the berbere, garlic, and ginger, cooking for 2–3 minutes until fragrant.",
+      "Stir in the tomato paste and cook for 2 minutes, then add the stock and bring to a simmer.",
+      "Add the chicken pieces, spooning sauce over them, and simmer uncovered for 35–40 minutes, until the chicken is very tender and the sauce has thickened.",
+      "Score the hard-boiled eggs lightly and nestle them into the stew for the last 10 minutes so they soak up the sauce.",
+      "Season with salt and serve hot with injera."
+    ]
+  },
+  {
+    id: "bobotie",
+    title: "Bobotie",
+    category: "Dinner",
+    country: "South Africa",
+    flag: "🇿🇦",
+    color: "#3F5142",
+    blurb: "Spiced, slightly sweet baked mince topped with a golden egg custard.",
+    time: "1 hr 15 min",
+    serves: "Serves 6",
+    ingredients: [
+      "2 lb ground beef or lamb",
+      "1 slice white bread, soaked in milk and squeezed",
+      "1 onion, chopped",
+      "2 tbsp curry powder",
+      "1 tbsp turmeric",
+      "2 tbsp apricot jam or chutney",
+      "1/4 cup raisins",
+      "2 tbsp vinegar",
+      "2 eggs, divided",
+      "1 cup milk",
+      "4 bay leaves",
+      "Salt, to taste"
+    ],
+    steps: [
+      "Preheat the oven to 350°F. Sauté the onion in a little oil until soft, then add the curry powder and turmeric, cooking for 1 minute.",
+      "Add the ground meat and cook, breaking it up, until browned.",
+      "Stir in the soaked bread, jam, raisins, vinegar, one beaten egg, and salt. Mix well and press into a greased baking dish.",
+      "Tuck the bay leaves into the top of the mixture and bake for 25 minutes.",
+      "Whisk the milk with the remaining egg and pour evenly over the partially baked meat.",
+      "Return to the oven and bake for another 20–25 minutes, until the custard topping is set and golden. Serve with yellow rice."
+    ]
+  },
+  {
+    id: "koshari",
+    title: "Koshari",
+    category: "Dinner",
+    country: "Egypt",
+    flag: "🇪🇬",
+    color: "#3F5142",
+    blurb: "Layers of rice, lentils, and pasta under a tangy tomato sauce and crisp onions.",
+    time: "1 hr",
+    serves: "Serves 4",
+    ingredients: [
+      "1 cup rice",
+      "1 cup brown lentils",
+      "1 cup small pasta (elbow or ditalini)",
+      "2 onions, thinly sliced",
+      "Vegetable oil, for frying",
+      "1 can (14 oz) crushed tomatoes",
+      "3 cloves garlic, minced",
+      "2 tbsp vinegar",
+      "1 tsp cumin",
+      "1/2 tsp chili flakes",
+      "Salt, to taste"
+    ],
+    steps: [
+      "Cook the lentils in salted water until just tender, about 20 minutes, then drain. Cook the rice and pasta separately according to package instructions.",
+      "Heat about 1/2 inch of oil in a pan and fry the sliced onions until deep golden and crisp. Drain on paper towels.",
+      "For the sauce, sauté the garlic in a little oil, then add the crushed tomatoes, vinegar, cumin, chili flakes, and salt. Simmer for 15 minutes.",
+      "To serve, layer the rice, lentils, and pasta in a bowl.",
+      "Spoon the tomato sauce generously over the top and finish with a big handful of crispy fried onions."
+    ]
+  },
+  {
+    id: "nasi-goreng",
+    title: "Nasi Goreng",
+    category: "Dinner",
+    country: "Indonesia",
+    flag: "🇮🇩",
+    color: "#3F5142",
+    blurb: "Smoky fried rice built on sweet soy and a fried egg on top.",
+    time: "25 min",
+    serves: "Serves 3",
+    ingredients: [
+      "4 cups cold cooked rice (day-old is best)",
+      "2 tbsp vegetable oil",
+      "3 cloves garlic, minced",
+      "1 shallot, sliced",
+      "1 red chili, sliced",
+      "1 cup shredded chicken or shrimp",
+      "3 tbsp kecap manis (sweet soy sauce)",
+      "1 tbsp soy sauce",
+      "3 eggs",
+      "Sliced cucumber and tomato, to serve"
+    ],
+    steps: [
+      "Heat 1 tbsp oil in a wok over high heat. Fry the garlic, shallot, and chili for 1 minute until fragrant.",
+      "Add the chicken or shrimp and stir-fry for 2 minutes.",
+      "Add the cold rice, breaking up any clumps, and stir-fry for 3–4 minutes until heated through.",
+      "Pour in the kecap manis and soy sauce, tossing until the rice is evenly coated and slightly caramelized at the edges.",
+      "In a separate pan, fry the eggs sunny-side up in the remaining oil.",
+      "Divide the rice among plates, top each with a fried egg, and serve with cucumber and tomato slices."
+    ]
+  },
+  {
+    id: "pho",
+    title: "Beef Pho",
+    category: "Dinner",
+    country: "Vietnam",
+    flag: "🇻🇳",
+    color: "#3F5142",
+    blurb: "Clear, fragrant beef broth over rice noodles, finished at the table with herbs.",
+    time: "2 hr",
+    serves: "Serves 4",
+    ingredients: [
+      "2 lb beef bones",
+      "1/2 lb beef brisket or sirloin",
+      "1 onion, halved",
+      "3-inch piece ginger, halved",
+      "3 star anise",
+      "1 cinnamon stick",
+      "3 cloves",
+      "1 tbsp fish sauce",
+      "8 oz flat rice noodles",
+      "Bean sprouts, Thai basil, lime, and sliced onion, to serve"
+    ],
+    steps: [
+      "Char the onion and ginger directly over a flame or under a broiler until blackened in spots, then rinse off any loose char.",
+      "Place the bones in a large pot, cover with water, and bring to a boil for 5 minutes. Drain and rinse the bones to remove impurities.",
+      "Return the bones to a clean pot with fresh water, the charred onion and ginger, star anise, cinnamon, and cloves. Simmer gently, skimming occasionally, for 1 1/2–2 hours.",
+      "Add the brisket for the last 40 minutes of simmering, then remove and slice thinly once cooled.",
+      "Strain the broth and season with fish sauce and salt to taste.",
+      "Cook the rice noodles according to the package, divide among bowls with sliced beef, and ladle the hot broth over. Serve with bean sprouts, basil, lime, and onion."
+    ]
+  },
+  {
+    id: "chicken-adobo",
+    title: "Chicken Adobo",
+    category: "Dinner",
+    country: "Philippines",
+    flag: "🇵🇭",
+    color: "#3F5142",
+    blurb: "Braised in vinegar, soy, and garlic until dark, tangy, and deeply savory.",
+    time: "45 min",
+    serves: "Serves 4",
+    ingredients: [
+      "2 lb chicken thighs and drumsticks",
+      "1/2 cup soy sauce",
+      "1/2 cup white vinegar",
+      "6 cloves garlic, smashed",
+      "2 bay leaves",
+      "1 tsp whole black peppercorns",
+      "1 tbsp brown sugar",
+      "1 tbsp vegetable oil"
+    ],
+    steps: [
+      "Combine the chicken, soy sauce, vinegar, garlic, bay leaves, and peppercorns in a pot. Let marinate for at least 20 minutes, or up to overnight in the fridge.",
+      "Bring the pot to a boil, then reduce to a simmer and cook uncovered for 25–30 minutes, turning occasionally, until the chicken is tender.",
+      "Remove the chicken and set aside. Add the brown sugar to the remaining sauce and simmer for 5–8 minutes until it thickens slightly.",
+      "Meanwhile, heat the oil in a separate pan and sear the chicken pieces until golden brown on both sides.",
+      "Return the seared chicken to the thickened sauce, toss to coat, and simmer 2–3 minutes more. Serve hot with steamed rice."
+    ]
+  },
+  {
+    id: "paella",
+    title: "Seafood Paella",
+    category: "Dinner",
+    country: "Spain",
+    flag: "🇪🇸",
+    color: "#3F5142",
+    blurb: "Saffron rice cooked wide and shallow, with a crackling golden crust on the bottom.",
+    time: "1 hr",
+    serves: "Serves 6",
+    ingredients: [
+      "2 cups Bomba or short-grain rice",
+      "1/2 tsp saffron threads",
+      "4 cups seafood or chicken stock, warm",
+      "1/4 cup olive oil",
+      "1 onion, chopped",
+      "1 red bell pepper, sliced",
+      "3 cloves garlic, minced",
+      "2 tomatoes, grated",
+      "1 lb mussels, scrubbed",
+      "1/2 lb shrimp",
+      "1/2 lb squid, sliced into rings",
+      "Salt, to taste",
+      "Lemon wedges, to serve"
+    ],
+    steps: [
+      "Steep the saffron in the warm stock while you prepare everything else.",
+      "Heat the olive oil in a wide paella pan over medium heat. Sauté the onion and bell pepper until softened, about 6 minutes.",
+      "Add the garlic and grated tomato, cooking until the mixture thickens slightly, about 5 minutes.",
+      "Stir in the rice, coating it well in the sofrito, then pour in the saffron stock and season with salt. Do not stir again from this point.",
+      "Simmer for 10 minutes, then arrange the shrimp, squid, and mussels over the top. Continue cooking uncovered for another 8–10 minutes, until the rice is tender and the seafood is cooked.",
+      "Let it rest for 5 minutes off the heat to let a crust form on the bottom. Serve with lemon wedges."
+    ]
+  },
+  {
+    id: "jerk-chicken",
+    title: "Jerk Chicken",
+    category: "Dinner",
+    country: "Jamaica",
+    flag: "🇯🇲",
+    color: "#3F5142",
+    blurb: "Fiery, allspice-heavy marinade, best cooked low and smoky on the grill.",
+    time: "50 min, plus marinating",
+    serves: "Serves 4",
+    ingredients: [
+      "3 lb chicken pieces",
+      "4 scotch bonnet peppers (less for milder heat)",
+      "6 green onions, chopped",
+      "1 small onion",
+      "3 tbsp allspice berries, ground",
+      "4 cloves garlic",
+      "2-inch piece ginger",
+      "1/4 cup soy sauce",
+      "1/4 cup vegetable oil",
+      "3 tbsp brown sugar",
+      "2 tbsp thyme leaves",
+      "Juice of 2 limes"
+    ],
+    steps: [
+      "Blend the scotch bonnets, green onions, onion, allspice, garlic, ginger, soy sauce, oil, brown sugar, thyme, and lime juice into a thick marinade.",
+      "Coat the chicken thoroughly with the marinade, cover, and refrigerate for at least 4 hours, ideally overnight.",
+      "Prepare a grill for indirect medium heat (or preheat an oven to 375°F).",
+      "Grill the chicken over indirect heat, turning occasionally, for 35–40 minutes until cooked through and charred in spots. If using an oven, roast for 40–45 minutes.",
+      "Let rest for 5 minutes before serving with rice and peas or fried plantain."
+    ]
+  }
+];
+
+const grid = document.getElementById('grid');
+const overlay = document.getElementById('overlay');
+const detailContent = document.getElementById('detailContent');
+const searchInput = document.getElementById('searchInput');
+const tabs = document.querySelectorAll('.tab');
+const countryChips = document.getElementById('countryChips');
+let activeFilter = 'all';
+let activeCountry = 'all';
+
+function matchesSearch(recipe, query){
+  if(!query) return true;
+  const q = query.toLowerCase();
+  if(recipe.title.toLowerCase().includes(q)) return true;
+  if(recipe.country.toLowerCase().includes(q)) return true;
+  return recipe.ingredients.some(i => i.toLowerCase().includes(q));
+}
+
+function buildCard(r){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.setProperty('--tag-color', r.color);
+  card.innerHTML = `
+    <span class="card-tag">${r.category}</span>
+    <h3>${r.title}</h3>
+    <p class="blurb">${r.blurb}</p>
+    <p class="country-badge">${r.flag} ${r.country}</p>
+    <p class="meta">${r.time}, ${r.serves.toLowerCase()}</p>
+  `;
+  card.addEventListener('click', () => openDetail(r));
+  return card;
+}
+
+function renderCountryChips(){
+  const seen = new Map();
+  recipes.forEach(r => { if(!seen.has(r.country)) seen.set(r.country, r.flag); });
+  const countries = [...seen.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+  countryChips.innerHTML = '';
+
+  const allChip = document.createElement('button');
+  allChip.className = 'country-chip active';
+  allChip.textContent = 'All countries';
+  allChip.addEventListener('click', () => selectCountry('all', allChip));
+  countryChips.appendChild(allChip);
+
+  countries.forEach(([country, flag]) => {
+    const chip = document.createElement('button');
+    chip.className = 'country-chip';
+    chip.innerHTML = `<span class="flag">${flag}</span> ${country}`;
+    chip.addEventListener('click', () => selectCountry(country, chip));
+    countryChips.appendChild(chip);
+  });
+}
+
+function selectCountry(country, chipEl){
+  activeCountry = country;
+  document.querySelectorAll('.country-chip').forEach(c => c.classList.remove('active'));
+  chipEl.classList.add('active');
+  searchInput.value = '';
+  render();
+  grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function render(){
+  const query = searchInput.value.trim();
+  const filtered = recipes.filter(r =>
+    (activeFilter === 'all' || r.category === activeFilter)
+    && (activeCountry === 'all' || r.country === activeCountry)
+    && matchesSearch(r, query)
+  );
+
+  grid.innerHTML = '';
+
+  if(filtered.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = query
+      ? `Nothing from "${query}" on the shelf yet — here are a few worth trying instead:`
+      : "Nothing on the shelf matches that.";
+    grid.appendChild(empty);
+
+    const suggestions = [...recipes].sort(() => 0.5 - Math.random()).slice(0, 3);
+    suggestions.forEach(r => grid.appendChild(buildCard(r)));
+    return;
+  }
+
+  filtered.forEach(r => grid.appendChild(buildCard(r)));
+}
+
+let currentUtterance = null;
+let speechState = 'idle'; // idle | playing | paused
+let availableVoices = [];
+let chosenVoiceURI = null;
+
+function loadVoices(){
+  availableVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+}
+if('speechSynthesis' in window){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function pickDefaultVoice(){
+  if(!availableVoices.length) return null;
+  const englishVoices = availableVoices.filter(v => v.lang && v.lang.startsWith('en'));
+  const pool = englishVoices.length ? englishVoices : availableVoices;
+  const preferred = pool.find(v => /natural|premium|enhanced|neural/i.test(v.name))
+    || pool.find(v => !v.localService)
+    || pool[0];
+  return preferred ? preferred.voiceURI : null;
+}
+
+function buildSpeechText(r){
+  return r.steps.map((s, i) => `Step ${i + 1}. ${s}`).join(' ');
+}
+
+function updateListenBtn(){
+  const btn = document.getElementById('listenBtn');
+  if(!btn) return;
+  if(speechState === 'playing'){
+    btn.textContent = '⏸ Pause narration';
+  } else if(speechState === 'paused'){
+    btn.textContent = '▶ Resume narration';
+  } else {
+    btn.textContent = '▶ Listen to the steps';
+  }
+}
+
+function toggleListen(r){
+  if(!('speechSynthesis' in window)){
+    alert("This browser doesn't support voice narration.");
+    return;
+  }
+  if(speechState === 'playing'){
+    window.speechSynthesis.pause();
+    speechState = 'paused';
+  } else if(speechState === 'paused'){
+    window.speechSynthesis.resume();
+    speechState = 'playing';
+  } else {
+    currentUtterance = new SpeechSynthesisUtterance(buildSpeechText(r));
+    currentUtterance.rate = 0.92;
+    currentUtterance.pitch = 1;
+    const voice = availableVoices.find(v => v.voiceURI === chosenVoiceURI);
+    if(voice) currentUtterance.voice = voice;
+    currentUtterance.onend = () => { speechState = 'idle'; updateListenBtn(); };
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(currentUtterance);
+    speechState = 'playing';
+  }
+  updateListenBtn();
+}
+
+function stopListening(){
+  if('speechSynthesis' in window){
+    window.speechSynthesis.cancel();
+  }
+  speechState = 'idle';
+  updateListenBtn();
+}
+
+function buildVoiceOptions(){
+  if(!availableVoices.length) return '';
+  if(!chosenVoiceURI) chosenVoiceURI = pickDefaultVoice();
+  return `
+    <select id="voiceSelect" class="voice-select">
+      ${availableVoices
+        .filter(v => v.lang && v.lang.startsWith('en'))
+        .map(v => `<option value="${v.voiceURI}" ${v.voiceURI === chosenVoiceURI ? 'selected' : ''}>${v.name}</option>`)
+        .join('')}
+    </select>
+  `;
+}
+
+function openDetail(r){
+  stopListening();
+  detailContent.style.setProperty('--tag-color', r.color);
+  detailContent.innerHTML = `
+    <button class="close-btn" id="closeBtn" aria-label="Close">&times;</button>
+    <span class="card-tag">${r.category}</span>
+    <h2>${r.title}</h2>
+    <p class="country-badge">${r.flag} ${r.country}</p>
+    <p class="meta">${r.time} &nbsp;&bull;&nbsp; ${r.serves}</p>
+    <div class="listen-row">
+      <button class="listen-btn" id="listenBtn">▶ Listen to the steps</button>
+      ${buildVoiceOptions()}
+    </div>
+    <p class="listen-note">Read aloud by a voice already on your device — pick a different one above if this one sounds too robotic. It's narration, not a real video.</p>
+    <div class="detail-section">
+      <h4>Ingredients</h4>
+      <ul class="ingredients">
+        ${r.ingredients.map(i => `<li>${i}</li>`).join('')}
+      </ul>
+    </div>
+    <div class="detail-section">
+      <h4>Steps</h4>
+      <ol class="steps">
+        ${r.steps.map(s => `<li>${s}</li>`).join('')}
+      </ol>
+    </div>
+  `;
+  overlay.classList.add('open');
+  document.getElementById('closeBtn').addEventListener('click', closeDetail);
+  document.getElementById('listenBtn').addEventListener('click', () => toggleListen(r));
+  const voiceSelect = document.getElementById('voiceSelect');
+  if(voiceSelect){
+    voiceSelect.addEventListener('change', (e) => {
+      chosenVoiceURI = e.target.value;
+      stopListening();
+    });
+  }
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail(){
+  stopListening();
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+overlay.addEventListener('click', (e) => {
+  if(e.target === overlay) closeDetail();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closeDetail();
+});
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    render();
+  });
+});
+
+searchInput.addEventListener('input', render);
+
+document.getElementById('surpriseBtn').addEventListener('click', () => {
+  const pool = recipes.filter(r =>
+    (activeFilter === 'all' || r.category === activeFilter)
+    && (activeCountry === 'all' || r.country === activeCountry)
+  );
+  const source = pool.length ? pool : recipes;
+  const pick = source[Math.floor(Math.random() * source.length)];
+  openDetail(pick);
+});
+
+const countryCount = new Set(recipes.map(r => r.country)).size;
+document.getElementById('footerText').textContent =
+  `${recipes.length} recipes from ${countryCount} countries, cooked and re-cooked. More get added when something earns its place.`;
+
+renderCountryChips();
+render();
+</script>
+
+</body>
+</html>
